@@ -66,7 +66,6 @@ import { ref } from "vue";
 import { icon } from '~/utils/icon';
 import { useRouter } from 'vue-router';
 import { useStore, useDialog } from '~/store';
-import Strings from '~/config/strings';
 
 import "@material/web/button/text-button";
 import "@material/web/button/filled-button";
@@ -74,6 +73,7 @@ import "@material/web/textfield/filled-text-field";
 
 import DialogChangePassword from "~/components/dialogs/DialogChangePassword.vue";
 import { mapYear } from "~/utils/page";
+import { clearSessionTokens } from "~/network/request";
 
 const store = useStore();
 const dialog = useDialog();
@@ -85,22 +85,26 @@ const isDialogOpen = ref(false);
  * Open logout dialog
  */
 function openLogoutDialog() {
-  const id = dialog.open(Strings.LOGOUT_DIALOG_TITLE, Strings.LOGOUT_DIALOG_MESSAGE, {
-    text: "Logout",
-    click: () => {
-      // Set loading to true
-      store.isLoading = true;
-      // Remove token cookie
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      // Set logged out
-      store.role = -1;
-      store.isLoggedIn = false;
-      // Redirect to login
-      router.push({ name: "Login" });
-      // Set loading to false
-      store.isLoading = false;
-      // Close dialog
-      dialog.close(id);
+  const id = dialog.open({
+    title: "Logout",
+    message: "Logging out will clear your session. Are you sure you want to logout?",
+    ok: {
+      text: "Logout",
+      click: () => {
+        // remove student tokens'
+        clearSessionTokens();
+        // Set loading to true
+        store.isLoading = true;
+        // Set logged out
+        store.role = -1;
+        store.isLoggedIn = false;
+        // Redirect to login
+        router.push({ name: "Login" });
+        // Set loading to false
+        store.isLoading = false;
+        // Close dialog
+        dialog.close(id);
+      }
     }
   });
 }

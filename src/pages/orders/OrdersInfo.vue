@@ -9,12 +9,12 @@
       <div class="flex gap-5 flex-col md:flex-row justify-between w-full mb-3">
         <div>
           <h2 class="font-semibold title-large mb-3 bg-secondary text-on-secondary rounded-md px-2 w-full text-left">
-            Order #{{ route.params.reference || order?.reference }}
+            {{ route.params.reference || order?.reference }}
           </h2>
           <h5 class="title-small w-full text-left">{{ order?.date_stamp ? getReadableDate(order?.date_stamp) : 'Invalid date' }}</h5>
         </div>
         <div>
-          <md-filled-select v-if="route.params.reference" v-model="status" label="Status" @change.prevent="onStatuChange" :disabled="isCompleted">
+          <md-outlined-select v-if="route.params.reference" v-model="status" label="Status" @change.prevent="onStatuChange" :disabled="isCompleted">
             <md-select-option
               v-for="option in statuses"
               :key="option.value"
@@ -22,7 +22,7 @@
             >
               <span slot="headline">{{ option.label }}</span>
             </md-select-option>
-          </md-filled-select>
+          </md-outlined-select>
         </div>
       </div>
 
@@ -117,13 +117,12 @@ import "@material/web/menu/menu";
 import "@material/web/menu/menu-item";
 import "@material/web/divider/divider";
 import "@material/web/progress/linear-progress";
-import "@material/web/select/filled-select";
+import "@material/web/select/outlined-select";
 import "@material/web/select/select-option";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
 import VImage from '~/components/VImage.vue';
 import ImageTemplate from '~/composables/ImageTemplate.vue';
-import Strings from '~/config/strings';
 
 const route = useRoute();
 const store = useStore();
@@ -169,17 +168,22 @@ function onStatuChange(ev: { target: { value: OrderStatus }}) {
   }
 
   if (ev.target.value === OrderStatus.COMPLETED) {
-    const id = dialog.open(Strings.ORDER_UPDATE_STATUS_COMPLETE_TITLE, Strings.ORDER_UPDATE_STATUS_COMPLETE_MESSAGE, {
-      text: "Yes, complete order",
-      click() {
-        dialog.close(id);
-        updateStatus(order.value!.id, OrderStatus.COMPLETED);
-      }
-    }, {
-      text: "No, cancel",
-      click() {
-        dialog.close(id);
-        status.value = currentStatus.value;
+    const id = dialog.open({
+      title: "Complete Order?",
+      message: "It can't be changed once it has been marked as complete. Are you sure you want to continue?",
+      ok: {
+        text: "Yes, complete order",
+        click() {
+          dialog.close(id);
+          updateStatus(order.value!.id, OrderStatus.COMPLETED);
+        }
+      },
+      cancel: {
+        text: "No, cancel",
+        click() {
+          dialog.close(id);
+          status.value = currentStatus.value;
+        }
       }
     });
 
@@ -243,7 +247,7 @@ function processData(response: ServerResponse<FullOrderModel>) {
 function updateStatus(orderId: string, newStatus: OrderStatus) {
   store.isLoading = true;
 
-  makeRequest<string, { id: string, key: string, value: OrderStatus }>("PUT", Endpoints.OrdersKey, {
+  makeRequest<FullOrderModel, { id: string, key: string, value: OrderStatus }>("PUT", Endpoints.OrdersKey, {
     id: orderId,
     key: OrderEnum.status,
     value: newStatus
@@ -258,7 +262,7 @@ function updateStatus(orderId: string, newStatus: OrderStatus) {
         isCompleted.value = true;
 
         if (order.value) {
-          order.value.status_updated = response.data;
+          order.value = response.data;
         }
       }
 

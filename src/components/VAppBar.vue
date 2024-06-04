@@ -1,5 +1,5 @@
 <template>
-  <div class="h-20 appbar">
+  <div class="h-16 z-[1]">
     <div class="container mx-auto px-4 flex items-center space-x-1 md:space-x-5 h-full">
       <!-- Back button -->
       <md-icon-button v-if="store.isShowBackButton" @click="back">
@@ -21,11 +21,19 @@
 
       <!-- Title -->
       <h3 class="hidden xl:block text-on-surface-variant">UC Main Computing Society of the Philippines - Students</h3>
-      <h3 class="block xl:hidden text-on-surface-variant">UC Main CSP-S</h3>
+      <h3
+        class="block xl:hidden text-on-surface-variant"
+        :class="{
+          'hidden': route.name === 'RFID Scanner - ICT Congress 2024',
+          'hidden md:inline': route.name === 'Admin - ICT Congress 2024'
+        }"
+      >
+        UC Main CSP-S
+      </h3>
 
       <!-- Navigation Links -->
       <div class="flex items-center gap-5 flex-grow justify-end">
-        <div class="xl:flex justify-end space-x-2 hidden">
+        <div class="xl:flex justify-end space-x-2 hidden" v-if="!route.name?.toString().includes('ICT')">
           <md-tabs :activeTabIndex="NAV_LINKS.findIndex(t => t.name === route.name)" class="overflow-hidden">
             <md-primary-tab
               v-for="(link, i) in NAV_LINKS.slice(0, 4)"
@@ -36,38 +44,59 @@
             >
               <router-link class="link" :to="link.path">
                 <md-icon v-html="icon(link.icon, NAV_LINKS.findIndex(t => t.name === route.name) !== i)" />
-                <span v-show="NAV_LINKS.findIndex(t => t.name === route.name) === i">{{ link.name }}</span>
+                <span>{{ link.name }}</span>
               </router-link>
             </md-primary-tab>
 
-            <md-primary-tab title="Profile" v-show="store.isLoggedIn" @click="router.push({ path: '/profile' })">
+            <md-primary-tab title="Profile" v-show="store.isLoggedIn">
               <router-link class="link" to="/profile" tabindex="-1">
                 <md-icon v-html="icon('person')" />
-                <span v-show="NAV_LINKS.findIndex(t => t.name === route.name) === 4">Profile</span>
+                <span>Profile</span>
               </router-link>
             </md-primary-tab>
-            <md-primary-tab title="Login" v-show="!store.isLoggedIn && !store.isAdminLoggedIn" @click="router.push({ path: '/login' })">
+            <md-primary-tab title="Login" v-show="!store.isLoggedIn && !store.isAdminLoggedIn">
               <router-link class="link" to="/login" tabindex="-1">
                 <md-icon v-html="icon('login')" />
-                <span v-show="NAV_LINKS.findIndex(t => t.name === route.name) === 5">Login</span>
+                <span>Login</span>
               </router-link>
             </md-primary-tab>
-            <md-primary-tab title="Admin" v-show="store.isAdminLoggedIn" @click="router.push({ path: '/admin' })">
+            <md-primary-tab title="Admin" v-show="store.isAdminLoggedIn">
               <router-link class="link" to="/admin" tabindex="-1">
                 <md-icon v-html="icon('account_circle')" />
-                <span v-show="NAV_LINKS.findIndex(t => t.name === route.name) === 5">Admin</span>
+                <span>Admin</span>
+              </router-link>
+            </md-primary-tab>
+          </md-tabs>
+        </div>
+
+        <div v-if="route.name === 'Admin - ICT Congress 2024' || route.name === 'RFID Scanner - ICT Congress 2024'">
+          <md-tabs :activeTabIndex="route.name === 'Admin - ICT Congress 2024' ? 0 : 1">
+            <md-primary-tab title="Home">
+              <router-link class="link" to="/ictcongress2024/admin">
+                <md-icon v-html="icon('home')" />
+                <span>Home</span>
+              </router-link>
+            </md-primary-tab>
+            <md-primary-tab title="ICT Congress 2024">
+              <router-link class="link" to="/ictcongress2024/admin/scan">
+                <md-icon v-html="icon('barcode_scanner')" />
+                <span>RFID</span>
               </router-link>
             </md-primary-tab>
           </md-tabs>
         </div>
 
         <md-switch @change="onThemeChange" :selected="store.isDark" icons>
-          <md-icon slot="on-icon" v-html="icon('dark_mode')" />
-          <md-icon slot="off-icon" v-html="icon('light_mode')" />
+          <md-icon slot="on-icon" class="scale-[0.65]" v-html="icon('dark_mode')" />
+          <md-icon slot="off-icon" class="scale-[0.65]" v-html="icon('light_mode')" />
         </md-switch>
 
+        <md-icon-button title="Logout" @click="logout" v-if="route.path.includes('/ictcongress2024/admin') && !route.path.includes('login')">
+          <md-icon v-html="icon('logout')" />
+        </md-icon-button>
+
         <!-- Drawer Button -->
-        <div class="flex justify-end xl:hidden relative">
+        <div class="flex justify-end xl:hidden relative" v-if="!route.name?.toString().includes('ICT')">
           <md-icon-button id="appbar-menu" @click="isMenuOpen = !isMenuOpen">
             <md-icon v-html="icon('menu')" />
           </md-icon-button>
@@ -82,7 +111,7 @@
             menu-corner="start-end"
           >
             <router-link
-              v-for="link in NAV_LINKS.slice(0, 5)"
+              v-for="link in NAV_LINKS.slice(0, 4)"
               :key="link.path"
               :to="link.path"
             >
@@ -120,10 +149,10 @@ import UCLogo from '~/assets/img/uc_logo.png';
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { Config, NAV_LINKS } from "~/config";
-import { useStore } from "~/store";
+import { useStore, useDialog } from "~/store";
 import { getHistoryLength } from '~/utils/page';
 import { setDarkMode } from '~/utils/theme';
-import { getStore } from '~/utils/storage';
+import { getStore, removeStore } from '~/utils/storage';
 import { icon } from '~/utils/icon';
 
 import "@material/web/switch/switch";
@@ -133,7 +162,6 @@ import "@material/web/menu/menu-item";
 import "@material/web/tabs/tabs";
 import "@material/web/tabs/primary-tab";
 import "@material/web/iconbutton/icon-button"
-
 
 defineProps({
   transparent: {
@@ -150,7 +178,30 @@ onMounted(() => {
 const store = useStore();
 const route = useRoute();
 const router = useRouter();
+const dialog = useDialog();
 const isMenuOpen = ref(false);
+
+function logout() {
+  const id = dialog.open({
+    title: "Logout confirmation",
+    message: "This will clear your session data. Are you sure you want to logout?",
+    ok: {
+      text: "Logout",
+      click() {
+        removeStore("iat");
+        removeStore("irt");
+        dialog.close(id);
+        router.push({ path: "admin/login" });
+      }
+    },
+    cancel:{
+      text: "Cancel",
+      click() {
+        dialog.close(id);
+      }
+    }
+  });
+}
 
 function onThemeChange() {
   store.isDark = !store.isDark;
@@ -170,10 +221,6 @@ function back() {
   img {
     @apply w-11;
   }
-}
-
-.appbar {
-  transition: padding 0.21s ease-in-out;
 }
 
 h3 {

@@ -10,7 +10,7 @@
         </h6>
 
         <div class="flex flex-col gap-1 mt-10 mb-6">
-          <md-filled-text-field
+          <md-outlined-text-field
             :disabled="isLoggingIn"
             label="Student ID"
             type="text"
@@ -21,9 +21,9 @@
             required
           >
             <md-icon slot="leading-icon" v-html="icon('badge', true)" />
-          </md-filled-text-field>
+          </md-outlined-text-field>
 
-          <md-filled-text-field
+          <md-outlined-text-field
             :disabled="isLoggingIn"
             label="Password"
             :type="isPasswordVisible ? 'text' : 'password'"
@@ -36,7 +36,7 @@
               <md-icon v-html="icon('visibility_off', true)" />
               <md-icon slot="selected" v-html="icon('visibility', true)" />
             </md-icon-button>
-          </md-filled-text-field>
+          </md-outlined-text-field>
         </div>
 
         <div class="flex justify-between items-center my-3">
@@ -50,7 +50,7 @@
         </div>
 
         <div class="flex justify-end">
-          <md-filled-button @click="login" class="min-w-1/3" :disabled="isLoggingIn">
+          <md-filled-button @click="login" class="w-1/3" :disabled="isLoggingIn">
             {{ isLoggingIn ? 'Logging in...' : 'Login' }}
           </md-filled-button>
         </div>
@@ -64,7 +64,7 @@
 </template>
 
 <script lang="ts" setup>
-import "@material/web/textfield/filled-text-field";
+import "@material/web/textfield/outlined-text-field";
 import "@material/web/iconbutton/icon-button";
 import "@material/web/button/filled-button";
 import "@material/web/button/filled-tonal-button";
@@ -87,13 +87,13 @@ import DialogForgotPassword from "~/components/dialogs/DialogForgotPassword.vue"
 const store = useStore();
 const router = useRouter();
 
-const id = ref(getStore("login_id"));
+const id = ref(getStore("login_student_id"));
 const password = ref("");
 
 const isLoggingIn = ref(false);
 const isPasswordVisible = ref(false);
 const isForgotDialogOpen = ref(false);
-const isRememberMe = ref(getStore("login_id").length > 0);
+const isRememberMe = ref(getStore("login_student_id").length > 0);
 
 /**
  * Login to the system
@@ -115,9 +115,15 @@ function login() {
   if (isLoggingIn.value) return;
   isLoggingIn.value = true;
   store.isLoading = true;
+
+  type LoginResponse = {
+    user: StudentModel & { role: AuthType };
+    accessToken: string;
+    refreshToken: string;
+  }
   
   // Make request to server
-  makeRequest<StudentModel, LoginRequest>("POST", Endpoints.Login, {
+  makeRequest<LoginResponse, LoginRequest>("POST", Endpoints.Login, {
     type: AuthType.STUDENT,
     student_id: id.value,
     password: password.value
@@ -130,13 +136,17 @@ function login() {
       // If remember me is checked, save to local storage
       // If not, remove from local storage
       if (isRememberMe.value) {
-        setStore("login_id", id.value);
+        setStore("login_student_id", id.value);
       } else {
-        removeStore("login_id");
+        removeStore("login_student_id");
       }
 
+      // Save student tokens to local storage
+      setStore("sat", response.data.accessToken);
+      setStore("srt", response.data.refreshToken);
+
       // Set student
-      store.user = response.data;
+      store.user = response.data.user;
       store.role = AuthType.STUDENT;
       // Set is logged in to true
       store.isLoggedIn = true;

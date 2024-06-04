@@ -17,6 +17,7 @@ declare global {
 
   type DialogButton = {
     text: string,
+    error?: boolean,
     click: () => void,
   }
 
@@ -32,6 +33,7 @@ declare global {
     message: string;
     ok?: DialogButton;
     cancel?: DialogButton | null;
+    dismissible?: boolean;
     dialogHide?: () => void;
   };
 
@@ -252,8 +254,90 @@ declare global {
     icon: Icon,
   }
 
-  type StoreKeys = "dark" | "std_token" | "adm_token" | "home_msg_role" | "login_id" | "student" |
-    "tabs_orders_status" | "tabs_orders_page" | "tabs_events_page" | "tabs_orders_sort" | "tabs_orders_column";
+  type ICTAdminModel = {
+    campus: string;
+    campus_name: string;
+    username: string;
+  }
+
+  type ICTStudentModel = {
+    id: number;
+    course: string;
+    campus_id: number;
+    student_id: string;
+    rfid?: string;
+    course_id: number;
+    tshirt_size_id: number;
+    year_level: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    discount_code: string;
+    attendance?: string;
+    payment_confirmed?: string;
+    tshirt_claimed?: string;
+    snack_claimed: number;
+    date_stamp: string;
+  }
+
+  type ICTStudentRegisterModel = {
+    student_id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    tshirt_size_id: number;
+    campus_id: number;
+    discount_code: string;
+    course_id: number;
+    year_level: number;
+  }
+
+  type ICTCourse = {
+    id: number;
+    course: string;
+    course_name: string;
+  }
+
+  type ICTShirtSize = {
+    id: number;
+    code: string;
+    name: string;
+  }
+
+  type ICTCampus = {
+    id: number;
+    campus: string;
+    campus_name: string;
+  }
+
+  export type CollegeModel = {
+    id: number;
+    acronym: string;
+    name: string;
+    courses?: CourseModel[];
+  };
+
+  type TatakformModel = {
+    id: number;
+    slug: string;
+    name: string;
+    from_date: string;
+    to_date: string;
+    date_stamp: string;
+  }
+  
+  type ICTStatistics = {
+    countAll: number;
+    countPendingPayments: number;
+    countPresent: number;
+    countSnackClaimed: number;
+    countPaymentConfirmed: number;
+    countTShirtClaimed: number;
+  }
+
+  type StoreKeys = "dark" | "std_token" | "adm_token" | "home_msg_role" | "login_student_id" |
+    "tabs_orders_status" | "tabs_orders_page" | "tabs_events_page" | "tabs_orders_sort" | "tabs_orders_column" | 
+    "sat" | "srt" | "aat" | "art" | "iat" | "irt" | "merch_checkout_student_details";
 }
 
 export {};

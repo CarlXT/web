@@ -12,37 +12,37 @@
           </div>
   
           <div class="bg-surface-container p-10 rounded-xl">
-            <md-filled-text-field :disabled="isPlacingOrder" v-model="studentId" :readonly="store.isLoggedIn" maxlength="8" label="Student ID">
+            <md-outlined-text-field :disabled="isPlacingOrder" v-model="studentId" :readonly="store.isLoggedIn" maxlength="8" label="Student ID">
               <md-icon slot="leading-icon" v-html="icon('badge', true)"  />
-            </md-filled-text-field>
+            </md-outlined-text-field>
             <div class="flex flex-col gap-6 flex-grow mt-2">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <md-filled-text-field :disabled="isPlacingOrder" v-model="firstName" :readonly="store.isLoggedIn" label="First name">
+                <md-outlined-text-field :disabled="isPlacingOrder" v-model="firstName" :readonly="store.isLoggedIn" label="First name">
                   <md-icon slot="leading-icon" v-html="icon('person', true)"  />
-                </md-filled-text-field>
-                <md-filled-text-field :disabled="isPlacingOrder" v-model="lastName" :readonly="store.isLoggedIn" label="Last name">
+                </md-outlined-text-field>
+                <md-outlined-text-field :disabled="isPlacingOrder" v-model="lastName" :readonly="store.isLoggedIn" label="Last name">
                   <md-icon slot="leading-icon" v-html="icon('person', true)"  />
-                </md-filled-text-field>
+                </md-outlined-text-field>
               </div>
-              <md-filled-text-field :disabled="isPlacingOrder" v-model="email" :readonly="store.isLoggedIn" type="email" label="Email">
+              <md-outlined-text-field :disabled="isPlacingOrder" v-model="email" :readonly="store.isLoggedIn" type="email" label="Email">
                 <md-icon slot="leading-icon" v-html="icon('mail', true)"  />
-              </md-filled-text-field>
+              </md-outlined-text-field>
 
               <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                <md-filled-select class="dense" v-if="!store.isLoggedIn" v-model="course" :disabled="store.isLoggedIn || isPlacingOrder" label="Course">
+                <md-outlined-select class="dense" v-if="!store.isLoggedIn" v-model="course" :disabled="store.isLoggedIn || isPlacingOrder" label="Course">
                   <md-icon slot="leading-icon" v-html="icon('school', true)" />
                   <md-select-option v-for="(c, id) in store.courses" :key="id" :value="Number(id)">
                     <span slot="headline">{{ c }}</span>
                   </md-select-option>
-                </md-filled-select>
-                <md-filled-select v-else label="Course" disabled>
+                </md-outlined-select>
+                <md-outlined-select v-else label="Course" disabled>
                   <md-icon slot="leading-icon" v-html="icon('school', true)"  />
                   <md-select-option :value="0" selected>
                     <span slot="headline">BSCS</span>
                   </md-select-option>
-                </md-filled-select>
+                </md-outlined-select>
 
-                <md-filled-select label="Year level" :disabled="store.isLoggedIn || isPlacingOrder" v-model="year">
+                <md-outlined-select label="Year level" :disabled="store.isLoggedIn || isPlacingOrder" v-model="year">
                   <md-icon slot="leading-icon" v-html="icon('school', true)" />
                   <md-select-option :value="1" :selected="year === 1">
                     <span slot="headline">1st year</span>
@@ -56,7 +56,7 @@
                   <md-select-option :value="4" :selected="year === 4">
                     <span slot="headline">4th year</span>
                   </md-select-option>
-                </md-filled-select>
+                </md-outlined-select>
               </div>
 
               <div v-if="!store.isLoggedIn" class="flex justify-end items-center text-on-surface-variant text-sm mt-3">
@@ -101,6 +101,7 @@
                 <md-outlined-select :disabled="isPlacingOrder" v-model="quantity" label="Quantity" class="w-min">
                   <md-select-option
                     v-for="i in store.checkoutDetails.product.max_quantity"
+                    :disabled="i > store.checkoutDetails.product.stock"
                     :key="i"
                     :value="i"
                   >
@@ -183,8 +184,8 @@ import ImageTemplate from '~/composables/ImageTemplate.vue';
 import CSPSGcash from "~/assets/img/csps_gcash.png";
 import router from "~/router";
 
-import "@material/web/textfield/filled-text-field";
-import "@material/web/select/filled-select";
+import "@material/web/textfield/outlined-text-field";
+import "@material/web/select/outlined-select";
 import "@material/web/select/outlined-select";
 import "@material/web/select/select-option";
 import "@material/web/button/filled-button";
@@ -242,8 +243,8 @@ onMounted(() => {
 
   setTimeout(() => {
     // If there is a saved student info and is not logged in, load it
-    if (getStore("student") && !store.isLoggedIn) {
-      const student = JSON.parse(atob(getStore("student") || ""));
+    if (getStore("merch_checkout_student_details") && !store.isLoggedIn) {
+      const student = JSON.parse(atob(getStore("merch_checkout_student_details") || ""));
       firstName.value = student.first_name;
       lastName.value = student.last_name;
       studentId.value = student.student_id;
@@ -261,99 +262,110 @@ function onSaveInfo(ev: Event) {
 
 function placeOrder() {
   isConfirmingOrder.value = true;
+  
+  const id = dialog.open({
+    title: "Confirm Order",
+    message: "All set to complete your order? Click 'Confirm' to proceed.",
+    ok: {
+      text: "Confirm",
+      click() {
+        dialog.close(id);
 
-  const id = dialog.open("Confirm Order", "All set to complete your order? Click 'Confirm' to proceed.", {
-    text: "Confirm",
-    click() {
-      dialog.close(id);
-
-      if (!store.checkoutDetails) {
-        toast.error("No product to checkout!");
-        return;
-      }
-
-      if (!store.checkoutDetails.product.is_available) {
-        toast.error("Product is not available yet!");
-        return;
-      }
-
-      if (!canPlaceOrder.value) {
-        toast.error("Please fill up all the required fields!");
-        return;
-      }
-
-      store.isLoading = true;
-      isPlacingOrder.value = true;
-
-      const data: OrderRequest = {
-        products_id: store.checkoutDetails.product.id,
-        mode_of_payment: mop.value,
-        quantity: quantity.value,
-      };
-
-      if (store.checkoutDetails.variant) {
-        data.variations_id = store.checkoutDetails.variant.id;
-      }
-
-      if (!store.isLoggedIn) {
-        data.student_id = studentId.value;
-        data.student_first_name = firstName.value;
-        data.student_last_name = lastName.value;
-        data.student_email = email.value;
-        data.student_course = course.value;
-        data.student_year = year.value;
-      }
-
-      // If save info is checked, save the student info to local storage in base64 encoded string
-      if (isSaveInfo.value) {
-        setStore("student", btoa(JSON.stringify({
-          student_id: studentId.value,
-          first_name: firstName.value,
-          last_name: lastName.value,
-          email_address: email.value,
-          course: course.value,
-          year_level: year.value,
-        })));
-      }
-
-      // Otherwise, remove the student info from local storage
-      else {
-        removeStore("student");
-      }
-
-      if (mop.value === ModeOfPayment.GCASH) {
-        data.proof = screenshot.value;
-      }
-
-      makeRequest<string, OrderRequest>("POST", Endpoints.Orders, data, response => {  
-        store.isLoading = false;
-        isPlacingOrder.value = false;
-
-        if (response.success) {
-          const [ title, message ] = response.message.split("_");
-
-          const id = dialog.open(title, message, {
-            text: "Gotchu",
-            click() {
-              dialog.close(id);
-            }
-          }, null, () => {
-            router.replace({ name: "Merch" });
-          });
-
+        if (!store.checkoutDetails) {
+          toast.error("No product to checkout!");
           return;
         }
 
-        toast.error(response.message);
-      });
+        if (!store.checkoutDetails.product.is_available) {
+          toast.error("Product is not available yet!");
+          return;
+        }
+
+        if (!canPlaceOrder.value) {
+          toast.error("Please fill up all the required fields!");
+          return;
+        }
+
+        store.isLoading = true;
+        isPlacingOrder.value = true;
+
+        const data: OrderRequest = {
+          products_id: store.checkoutDetails.product.id,
+          mode_of_payment: mop.value,
+          quantity: quantity.value,
+        };
+
+        if (store.checkoutDetails.variant) {
+          data.variations_id = store.checkoutDetails.variant.id;
+        }
+
+        if (!store.isLoggedIn) {
+          data.student_id = studentId.value;
+          data.student_first_name = firstName.value;
+          data.student_last_name = lastName.value;
+          data.student_email = email.value;
+          data.student_course = course.value;
+          data.student_year = year.value;
+        }
+
+        // If save info is checked, save the student info to local storage in base64 encoded string
+        if (isSaveInfo.value) {
+          setStore("merch_checkout_student_details", btoa(JSON.stringify({
+            student_id: studentId.value,
+            first_name: firstName.value,
+            last_name: lastName.value,
+            email_address: email.value,
+            course: course.value,
+            year_level: year.value,
+          })));
+        }
+
+        // Otherwise, remove the student info from local storage
+        else {
+          removeStore("merch_checkout_student_details");
+        }
+
+        if (mop.value === ModeOfPayment.GCASH) {
+          data.proof = screenshot.value;
+        }
+
+        makeRequest<string, OrderRequest>("POST", Endpoints.Orders, data, response => {  
+          store.isLoading = false;
+          isPlacingOrder.value = false;
+
+          if (response.success) {
+            const [ title, message ] = response.message.split("_");
+
+            const id = dialog.open({
+              title, message,
+              ok: {
+                text: "Gotchu",
+                click() {
+                  dialog.close(id);
+                }
+              },
+              cancel: null,
+              dialogHide: () => {
+                router.replace({ name: "Merch" });
+              }
+            });
+
+            return;
+          }
+
+          toast.error(response.message);
+        });
+      }
+    },
+    cancel: {
+      text: "Cancel",
+      click() {
+        dialog.close(id);
+      }
+    },
+    dialogHide: () => {
+      isConfirmingOrder.value = false;
     }
-  }, {
-    text: "Cancel",
-    click() {
-      dialog.close(id);
-    }
-  }, () => {
-    isConfirmingOrder.value = false;
   });
 }
 
@@ -370,7 +382,7 @@ function onFilePut(event: Event) {
 </script>
 
 <style lang="scss" scoped>
-md-filled-text-field {
+md-outlined-text-field {
   @apply w-full;
 }
 </style>

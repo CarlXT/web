@@ -5,6 +5,7 @@ enum Endpoints {
   Login = "/login",
   ForgotPassword = "/forgot",
   Courses = "/courses",
+  Colleges = "/colleges",
   
   PhotosHash = "/photos/:hash",
   ReferenceHash = "/photos/:hash/reference",
@@ -37,6 +38,22 @@ enum Endpoints {
   OrdersKey = "/orders/:id/:key",
   OrdersUnique = "/orders/unique/:uniqueId",
   OrdersReference = "/orders/reference/:reference",
+
+  Tatakforms = "/tatakforms",
+  TatakformsSlug = "/tatakforms/:slug",
+
+  ICTCongress = "/ictcongress2024",
+  ICTCongressRFID = "/ictcongress2024/rfid/:rfid",
+  ICTCongressLogin = "/ictcongress2024/login",
+  ICTCongressExportSheet = "/ictcongress2024/export/xlsx",
+  ICTCongressExportCsv = "/ictcongress2024/export/csv",
+  ICTCongressStatistics = "/ictcongress2024/statistics",
+  ICTCongressPrice = "/ictcongress2024/price/:discount_code", 
+  ICTCongressStudents = "/ictcongress2024/students",
+  ICTCongressStudentsId = "/ictcongress2024/students/:student_id",
+  ICTCongressTshirtClaim = "/ictcongress2024/students/:student_id/claim-tshirt",
+  ICTCongressStudentPaymentConfirm = "/ictcongress2024/students/:student_id/payment-confirm",
+  ICTCongressPendingOrders = "/ictcongress2024/campus/pending-orders",
 }
 
 export default Endpoints;

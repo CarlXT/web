@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 
-export * from "./dialog"
+export * from "./dialog";
+export * from "./ict";
 
 export const useStore = defineStore("global", () => {
   const errorMessage = "";
@@ -8,6 +9,7 @@ export const useStore = defineStore("global", () => {
   const rails: NavigationRailItem[] = [];
   const courses: string[] = [];
 
+  const isMaintenance = false;
   const isLoggedIn = undefined as boolean | undefined;
   const isAdminLoggedIn = undefined as boolean | undefined;
   const isLoading = true;
@@ -16,7 +18,7 @@ export const useStore = defineStore("global", () => {
 
   let checkoutDetails: CheckoutDetails | undefined;
 
-  const role = -1;
+  const role = undefined as number | undefined;
   const user: StudentResponse = {
     id: 0,
     student_id: "",
@@ -37,9 +39,27 @@ export const useStore = defineStore("global", () => {
     date_stamp: "",
   };
 
+  const ictAdmin: ICTAdminModel = {
+    username: "",
+    campus: "",
+    campus_name: "",
+  };
+
   return {
-    isShowBackButton, isDark, isLoggedIn, isLoading, errorMessage, role,
-    checkoutDetails, user, isAdminLoggedIn, rails, selectedRail, courses,
-    admin
-  }
+    isShowBackButton,
+    isDark,
+    isLoggedIn,
+    isLoading,
+    errorMessage,
+    role,
+    checkoutDetails,
+    user,
+    isAdminLoggedIn,
+    rails,
+    selectedRail,
+    courses,
+    admin,
+    isMaintenance,
+    ictAdmin,
+  };
 });

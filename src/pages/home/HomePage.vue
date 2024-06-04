@@ -1,7 +1,7 @@
 <template>
-  <div class="relative bg-surface-variant dark:bg-surface-container-high flex-grow">
+  <div class="bg-surface-variant dark:bg-surface-container-high flex-grow relative h-full -z-[0]">
     <!-- Call To Action -->
-    <div class="rounded-br-3xl rounded-bl-3xl -z-[1] bg-surface">
+    <div class="rounded-br-3xl rounded-bl-3xl -z-[1] bg-surface pt-20 -translate-y-20">
       <div class="container mx-auto text-center pt-8 pb-5 px-6">
         <div class="flex justify-center gap-3 mb-6" data-sal="zoom-in">
           <md-filter-chip :selected="role ==='dean'" @click="showMessage('dean')" label="Dean" title="Welcome Message" elevated>
@@ -16,7 +16,16 @@
           </md-filter-chip>
         </div>
 
-        <h2 class="headline-medium font-semibold text-on-surface-variant" data-sal="zoom-in">
+        <div class="flex justify-center mt-3" data-sal="zoom-in">
+          <md-assist-chip
+            elevated
+            class="mb-3 text-primary"
+            label="ICT Congress 2024 registration (Coming Soon)"
+            disabled
+          />
+        </div>
+
+        <h2 class="headline-medium font-semibold text-primary" data-sal="zoom-in">
           {{ store.isLoggedIn ? `Hello, ${store.user.first_name} ${store.user.last_name}` : "Dive into the world of Computer Science" }}
         </h2>
 
@@ -33,7 +42,9 @@
           </v-button>
         </div>
       </div>
-      <div class="w-full overflow-hidden mt-10">
+      
+
+      <div class="w-full overflow-hidden mt-10 relative top-1">
         <canvas ref="waveEl"></canvas>
       </div>
     </div>
@@ -68,7 +79,7 @@
     </Transition>
 
     <!-- Announcements -->
-    <div class="container mx-auto px-6 flex justify-center mt-16 h-full">
+    <div class="container mx-auto px-6 flex justify-center mt-4 h-full">
       <div v-if="isLoading" class="flex flex-col justify-center items-center gap-2 body-medium">
         <md-linear-progress indeterminate />
         <span>Fetching announcements...</span>
@@ -114,6 +125,7 @@ import "@material/web/iconbutton/icon-button";
 import "@material/web/progress/linear-progress";
 import "@material/web/button/filled-button";
 import "@material/web/button/filled-tonal-button";
+import "@material/web/chips/assist-chip";
 import "@material/web/chips/filter-chip";
 
 register();
@@ -149,7 +161,7 @@ let wavifyInstance: {
 
 watch(() => store.isDark, v => {
   if (!wavifyInstance) return;
-  wavifyInstance.setColor(v ? "#2C292C" : "#EBDFE9");
+  wavifyInstance.setColor(v ? "#2d282e" : "#ebdfe9");
 });
 
 onMounted(() => {
@@ -189,7 +201,7 @@ onMounted(() => {
   // Bind swiper
   bindSwiper();
   // Initialize wavify
-  wavifyInstance = wave(waveEl.value, store.isDark ? "#2C292C" : "#EBDFE9");
+  wavifyInstance = wave(waveEl.value, store.isDark ? "#2d282e" : "#ebdfe9");
   // Initialize sal
   sal();
 });
